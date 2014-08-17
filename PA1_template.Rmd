@@ -7,7 +7,7 @@ output: html_document
 
 Loading and preprocessing the data
 ```{r}
-setwd("C:/Users/corbin.thornbrough/Documents/R/Reproducible Research/Quantified Self Peer Assessment/RepData_PeerAssessment1")
+setwd("C:/Users/corbin.thornbrough/Documents/GitHub/RepData_PeerAssessment1")
 unzip("activity.zip")
 activity<-read.csv("activity.csv")
 activity$date<-as.Date(activity$date)
