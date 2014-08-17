@@ -1,59 +1,94 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 author: "Corbin Thornbrough"
-date: "Friday, August 15th, 2014"
+date: "Sunday, August 17th, 2014"
 output: html_document
 ---
 
-Loading and preprocessing the data
+##Loading and preprocessing the data
+
+####The following code unzips the activity csv and reads it into R as the "activity" table.
 ```{r}
 setwd("C:/Users/corbin.thornbrough/Documents/GitHub/RepData_PeerAssessment1")
 unzip("activity.zip")
 activity<-read.csv("activity.csv")
+```
+
+####This code transforms the data types to make the data more usable.
+```{r}
 activity$date<-as.Date(activity$date)
 activity$steps<-as.numeric(activity$steps)
 activity$interval<-as.numeric(activity$interval)
 ```
 
+##What is mean total number of steps taken per day?
 
-What is mean total number of steps taken per day?
-
+####Here is a histogram of the total number of steps taken each day.
 ```{r}
 act.steps.agg<-aggregate(steps~date,activity,sum)
 hist(act.steps.agg$steps, main="Histogram of Daily Steps", xlab="Steps")
+```
+
+####This is the mean and median number of steps taken per day.
+```{r}
 mean(act.steps.agg$steps)
 median(act.steps.agg$steps)
 ```
 
-What is the average daily activity pattern?
+##What is the average daily activity pattern?
 
+####This plots the 5-minute interval by the average number of steps taken in that interval across the week.
 ```{r}
 act.interval.agg<-aggregate(steps~interval,activity, mean)
 plot(act.interval.agg$steps~act.interval.agg$interval, type="l", xlab="five-minute interval",
      ylab="steps averaged across all days", main="Plot of Average Steps by Interval")
+```
+
+####The following is the interval with the largest number of average steps.
+```{r}
 act.interval.agg[which.max(act.interval.agg$steps),1]
 ```
 
-Imputing missing values
+##Imputing missing values
 
+####Here is the number of NA values for steps in the data.
+```{r}
+sum(is.na(activity$steps))
+```
+
+####This creates a new dataset with NA values (for the steps variable) replaced by the mean number of steps for that interval over the week.
 ```{r}
 activity.mod<-activity
-sum(is.na(activity.mod$steps))
 activity.mod$steps<-with(activity.mod,ifelse(
   is.na(steps),
   ave(steps,interval,FUN=function(steps)mean(steps, na.rm=TRUE)),
   steps
   ))
+```
+
+####Here is a histogram of the total number of steps taken each day with the NAs replaced.
+```{r}
 mod.act.agg<-aggregate(steps~date,activity.mod,sum)
 hist(mod.act.agg$steps, main="Histogram of Daily Steps", xlab="Steps")
+```
+
+####This is the mean and median number of steps take per day with the NAs replaced.  As you can see, this makes a minimal difference in the mean and median.
+```{r}
 mean(mod.act.agg$steps)
 median(mod.act.agg$steps)
 ```
 
 
-Are there differences in activity patterns between weekdays and weekends?
+##Are there differences in activity patterns between weekdays and weekends?
+
+####This adds another variable to the dataset with NAs replaced.  This new variable denotes that the record was on a weekend (Saturday & Sunday) or a weekend (Monday-Friday).
+```{r}
+activity.mod$weekday<-ifelse(weekdays(activity.mod$date)=="Saturday" | weekdays(activity.mod$date)=="Sunday","weekend","weekday")
+```
+
+####This plots the weekend and weekday number of steps (x-axis) by the 5-minute interval (y-axis).
 ```{r}
 require(lattice)
-activity.mod$weekday<-ifelse(weekdays(activity.mod$date)=="Saturday" | weekdays(activity.mod$date)=="Sunday","weekend","weekday")
 xyplot(activity.mod$steps~activity.mod$interval | activity.mod$weekday, activity.mod, type="h", ylab="Steps",xlab="Interval")
 ```
+####As you can see, on the weekends, activity begins much later in the day and extends further into the evening than on the weekdays.
